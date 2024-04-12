@@ -1,0 +1,30 @@
+{% extends 'base.html'%}
+<body>
+
+{%block content%}	
+<center>
+<h1>Welcome, {{ current_user.username }}!</h1> 
+<br>
+
+<div>
+	<p>Username: {{ current_user.username }}</p>
+	<p>Email Address: {{ current_user.email_address }}</p>
+</div>
+
+<div class="changediv">
+<br>
+
+<form action="" method="post">
+    <input type="hidden" name="userid2" value="{{current_user.id}}">
+    <input type="submit" class="text-center shadow-lg p-2 mb-0 bg-body rounded btn btn-dark" value="Change Password" name='changepassword'/>
+</form>
+<br>
+<form action="" method="post">
+	<input type="hidden" name="userid2" value="{{current_user.id}}">
+	<input type="submit" class="text-center shadow-lg p-2 mb-0 bg-body rounded btn btn-dark" value="Delete Profile" name='deleteprofile'/>
+</form>
+</center>
+
+{%endblock content%}
+</body>
+</html>
