@@ -50,3 +50,8 @@ class PasswordForm(FlaskForm):
     newpass = PasswordField(label='Enter New Password', validators=[InputRequired(message="Password required"), Length(min=4, max=32, message="Password must be between 4 and 32 characters"), DataRequired()])
     submit = SubmitField(label='Submit')
 
+class AddPassword(FlaskForm):
+    account_name = StringField('Account Name', validators=[InputRequired(message="Account Name required"), DataRequired()])
+    password = StringField('Account Password', validators=[InputRequired(message="Account Password required"), DataRequired()])
+    submit = SubmitField(label='Submit')
+

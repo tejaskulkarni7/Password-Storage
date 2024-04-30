@@ -1,9 +1,9 @@
-from app.forms import RegistrationForm, LoginForm, PasswordForm
+from app.forms import RegistrationForm, LoginForm, PasswordForm, AddPassword
 from flask import render_template, redirect, url_for, request, flash
 from app import myapp_obj, db
 from sqlalchemy import or_
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from app.models import User
+from app.models import User, AccountCredentials
 from flask_login import login_user, logout_user, login_required, current_user
 import os
 @myapp_obj.route("/", methods=['GET', 'POST'])
@@ -74,6 +74,7 @@ def profile():
 
 
 @myapp_obj.route('/changepassword', methods=["GET", "POST"])
+@login_required
 def changepassword():
     form = PasswordForm()
     if form.validate_on_submit():   #check if submit is clicked
@@ -91,3 +92,28 @@ def changepassword():
             flash("Incorrect Password", category='danger')
             return render_template("changepassword.html", form=form)
     return render_template("changepassword.html", form=form)
+
+
+@myapp_obj.route('/passwordpage', methods=["GET", "POST"])
+@login_required
+def passwordpage():
+    user_id = current_user.id
+    credentials = AccountCredentials.query.filter_by(user_id=user_id).all()
+    return render_template("passwordpage.html", credentials=credentials)
+
+@myapp_obj.route('/addpassword', methods=["GET", "POST"])
+@login_required
+def addpassword():
+    form = AddPassword()
+    if form.validate_on_submit():  
+        account_name = form.account_name.data
+        password = form.password.data
+        # Create a new AccountCredentials instance
+        new_account = AccountCredentials(account_name=account_name, encrypted_password=password, user_id=current_user.id)
+        # Add the new account to the session
+        db.session.add(new_account)
+        # Commit the changes to the database
+        db.session.commit()
+        flash(f'Account "{account_name}" added successfully.', 'success')
+        return redirect(url_for('passwordpage')) # Redirect to a page where the user can view their passwords
+    return render_template("addpassword.html", form=form)
