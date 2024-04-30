@@ -50,8 +50,3 @@ class PasswordForm(FlaskForm):
     newpass = PasswordField(label='Enter New Password', validators=[InputRequired(message="Password required"), Length(min=4, max=32, message="Password must be between 4 and 32 characters"), DataRequired()])
     submit = SubmitField(label='Submit')
 
-
-class FeedbackForm(FlaskForm):
-
-    feedback = TextAreaField('Feedback', validators=[DataRequired(message="Feedback is required")])
-    submit = SubmitField(label='Submit')

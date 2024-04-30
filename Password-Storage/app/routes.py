@@ -1,4 +1,4 @@
-from app.forms import RegistrationForm, LoginForm, PasswordForm, FeedbackForm
+from app.forms import RegistrationForm, LoginForm, PasswordForm
 from flask import render_template, redirect, url_for, request, flash
 from app import myapp_obj, db
 from sqlalchemy import or_
@@ -91,13 +91,3 @@ def changepassword():
             flash("Incorrect Password", category='danger')
             return render_template("changepassword.html", form=form)
     return render_template("changepassword.html", form=form)
-
-
-@myapp_obj.route('/infopage', methods=["GET", "POST"])
-@login_required
-def infopage():
-    form = FeedbackForm()
-    if form.validate_on_submit():
-        flash("Feedback received!")
-        return render_template("home.html", form=form)
-    return render_template("infopage.html", form=form)

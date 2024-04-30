@@ -15,9 +15,10 @@
 - In project root directory run the following command:
     python -m pip install -r requirements.txt
     (You may have to do python3 -m pip install -r requirements.txt)
-
+- remove the comments from db.drop_all() and db.create_all() in __init__.py 
 - then run the project by doing:
     python3 run.py
+*comment the lines mentioned above after you have run once*
  
 
 # How to Run
