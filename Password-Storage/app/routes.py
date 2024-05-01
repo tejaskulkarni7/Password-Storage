@@ -99,7 +99,23 @@ def changepassword():
 def passwordpage():
     user_id = current_user.id
     credentials = AccountCredentials.query.filter_by(user_id=user_id).all()
+
+    if request.method == "POST":
+        if request.form.get('deletepassword') == 'Delete Password':
+            # Attempt to delete the credential
+            credential_id = request.form.get('credential_id') # Changed from 'id' to 'credential_id'
+            credential = AccountCredentials.query.get(credential_id)
+            if credential:
+                db.session.delete(credential)
+                db.session.commit()
+                # Redirect back to the passwords page to reflect the change
+                return redirect(url_for('passwordpage'))
+            else:
+                # Handle the case where the credential was not found
+                return "Credential not found", 404
+
     return render_template("passwordpage.html", credentials=credentials)
+
 
 @myapp_obj.route('/addpassword', methods=["GET", "POST"])
 @login_required
