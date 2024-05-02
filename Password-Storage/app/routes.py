@@ -48,9 +48,9 @@ def signupPage():
         user_to_create = User(username=form.username.data, email_address=form.email_address.data, password=form.password1.data)    #get data from the form user filled
         db.session.add(user_to_create)
         db.session.commit() #add it to database
-        login_user(user_to_create)  #login the user if signup is successfull
-        flash(f'Account created successfully! You are now logged in as {user_to_create.username}', category='success')  #flash success message
-        session['username'] = current_user.username
+        #login_user(user_to_create)  #login the user if signup is successfull
+        #flash(f'Account created successfully! You are now logged in as {user_to_create.username}', category='success')  #flash success message
+        session['username'] = user_to_create.username
         return redirect(url_for('two_factor_setup'))
     if form.errors != {}: #If there are errors in signing up
         for err_msg in form.errors.values():
