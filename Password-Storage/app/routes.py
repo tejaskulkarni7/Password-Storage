@@ -1,11 +1,14 @@
 from app.forms import RegistrationForm, LoginForm, PasswordForm, AddPassword
-from flask import render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request, flash, session, abort
 from app import myapp_obj, db
 from sqlalchemy import or_
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from app.models import User, AccountCredentials
 from flask_login import login_user, logout_user, login_required, current_user
+import pyqrcode
 import os
+from io import BytesIO
+
 @myapp_obj.route("/", methods=['GET', 'POST'])
 def home():
     return render_template('home.html', title='Home')
@@ -15,13 +18,18 @@ def home():
 def loginPage():
     form = LoginForm()
     if form.validate_on_submit():   #check if submit is clicked
+
         attempted_user = User.query.filter_by(username=form.username.data).first()
-        if attempted_user and attempted_user.check_password_correction(attempted_password=form.password.data): #if the username and password are correct
-            login_user(attempted_user) #then login the user session
-            flash(f'Success logging in, Logged in as: {attempted_user.username}', category='success')
-            return redirect(url_for('home'))
-        else:
-            flash('Username or Password does not match! Please try again', category='danger')
+        if attempted_user is None or not attempted_user.check_password_correction(form.password.data) or \
+            not attempted_user.verify_totp(form.token.data):
+            flash('Invalid username, password or token.', category='danger')
+            return redirect(url_for('loginPage'))
+        #if attempted_user and attempted_user.check_password_correction(attempted_password=form.password.data): #if the username and password are correct
+        login_user(attempted_user) #then login the user session
+        flash(f'Success logging in, Logged in as: {attempted_user.username}', category='success')
+        return redirect(url_for('home'))
+#        else:
+#            flash('Username or Password does not match! Please try again', category='danger')
     return render_template('login.html', title='Login', form=form)      
 
 
@@ -42,7 +50,8 @@ def signupPage():
         db.session.commit() #add it to database
         login_user(user_to_create)  #login the user if signup is successfull
         flash(f'Account created successfully! You are now logged in as {user_to_create.username}', category='success')  #flash success message
-        return redirect(url_for('home'))    #redirect to market after logging in
+        session['username'] = current_user.username
+        return redirect(url_for('two_factor_setup'))
     if form.errors != {}: #If there are errors in signing up
         for err_msg in form.errors.values():
                 flash(f'There was an error with creating a user: {err_msg}', category='danger') #flash appropriate error message
@@ -50,7 +59,40 @@ def signupPage():
 
     return render_template('signup.html', form=form, title='Signup')
 
+@myapp_obj.route('/twofactor')
+def two_factor_setup():
+    if 'username' not in session:
+        return redirect(url_for('home'))
+    user = User.query.filter_by(username=session['username']).first()
+    if user is None:
+        return redirect(url_for('home'))
+    # since this page contains the sensitive qrcode, make sure the browser
+    # does not cache it
+    return render_template('two-factor-setup.html'), 200, {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'}
 
+@myapp_obj.route('/qrcode')
+def qrcode():
+    if 'username' not in session:
+        abort(404)
+    user = User.query.filter_by(username=session['username']).first()
+    if user is None:
+        abort(404)
+
+    # for added security, remove username from session
+    del session['username']
+
+    # render qrcode for FreeTOTP
+    url = pyqrcode.create(user.get_totp_uri())
+    stream = BytesIO()
+    url.svg(stream, scale=5)
+    return stream.getvalue(), 200, {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'}
 
 
 

@@ -40,6 +40,7 @@ class RegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[InputRequired(message="Username required"), DataRequired()])
     password = PasswordField('Password', validators=[InputRequired(message="Password required"), DataRequired()])
+    token = StringField('Token', validators=[DataRequired(), Length(6, 6)])
     submit = SubmitField('Log In')
 
 

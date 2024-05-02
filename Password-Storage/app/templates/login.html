@@ -24,7 +24,11 @@ Log In
                     
                       {{ form.password(class="shadow-lg p-3 mb-3 form-control", placeholder="Password") }}
                       {{ form.password.label() }}
-                      <br> <br> 
+                      <br> <br>
+                      
+                      {{ form.token(class="shadow-lg p-3 mb-3 form-control", placeholder="Token") }}
+                      {{ form.token.label() }}
+                      <br> <br>
                        
                       <div class="d-flex justify-content-center">
                         {{ form.submit(class="shadow-lg p-2 mb-3 bg-body btn btn-light btn-lg px-5") }}
