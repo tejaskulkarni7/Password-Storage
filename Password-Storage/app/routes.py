@@ -5,10 +5,8 @@ from sqlalchemy import or_
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from app.models import User, AccountCredentials
 from flask_login import login_user, logout_user, login_required, current_user
-from cryptography.fernet import Fernet
 import pyqrcode
 import os
-import base64
 from io import BytesIO
 
 @myapp_obj.route("/", methods=['GET', 'POST'])
@@ -98,6 +96,7 @@ def qrcode():
 
 
 
+
 @myapp_obj.route("/profilepage", methods=['GET', 'POST'])
 @login_required
 def profile():
@@ -156,29 +155,8 @@ def passwordpage():
             else:
                 # Handle the case where the credential was not found
                 return "Credential not found", 404
-    
-    credentials_info = []
 
-    # Decrypt passwords using the encryption key
-    for credential in credentials:
-        encrypted_password = credential.encrypted_password
-        encrypted_key = credential.encryption_key
-        # Decode the base64-encoded encryption key
-        decoded_key = base64.urlsafe_b64decode(encrypted_key)
-        cipher_suite_with_key = Fernet(decoded_key)
-        decrypted_password = cipher_suite_with_key.decrypt(encrypted_password).decode('utf-8')
-        
-        # Create a dictionary with credential information
-        credential_info = {
-            'id': credential.id,
-            'account_name': credential.account_name,
-            'decrypted_password': decrypted_password
-        }
-
-        # Append the dictionary to the credential list
-        credentials_info.append(credential_info)
-
-    return render_template("passwordpage.html", credentials_info=credentials_info)
+    return render_template("passwordpage.html", credentials=credentials)
 
 
 @myapp_obj.route('/addpassword', methods=["GET", "POST"])
@@ -186,18 +164,10 @@ def passwordpage():
 def addpassword():
     form = AddPassword()
     if form.validate_on_submit():  
-        key = Fernet.generate_key()  # This is the correct way to generate a Fernet key
-        cipher_suite = Fernet(key)  # Use the generated key directly
-
         account_name = form.account_name.data
         password = form.password.data
-
-        # Correctly encrypt the password using the cipher_suite
-        encrypted_password = cipher_suite.encrypt(password.encode('utf-8'))
-
         # Create a new AccountCredentials instance
-        new_account = AccountCredentials(account_name=account_name, encrypted_password=encrypted_password, encryption_key=key, user_id=current_user.id)  # Store the key directly
-
+        new_account = AccountCredentials(account_name=account_name, encrypted_password=password, user_id=current_user.id)
         # Add the new account to the session
         db.session.add(new_account)
         # Commit the changes to the database

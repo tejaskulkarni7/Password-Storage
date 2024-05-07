@@ -51,9 +51,7 @@ class AccountCredentials(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     account_name = db.Column(db.String(length=100), nullable=False)
     encrypted_password = db.Column(db.String, nullable=False)
-    encryption_key = db.Column(db.LargeBinary(), nullable=False)  # Store the key as a byte string
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id'), nullable=False)
-
 
     def __repr__(self):
         return f'AccountCredentials {self.account_name}'
